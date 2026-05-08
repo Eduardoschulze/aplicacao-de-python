@@ -1,0 +1,39 @@
+create table produtos (
+id int auto_increment primary key,
+nome varchar (30),
+preco decimal (10,2),
+estoque int not null
+);
+
+create table log_autoria_produtos (
+id int auto_increment primary key,
+produto_id int,
+acao varchar(50),
+valor_antigo decimal (10,2),
+valor_novo decimal (10,2),
+data_hora timestamp default current_timestamp,
+usuario varchar(50)
+);
+
+
+/*criação do trigger*/
+DELIMITER $$
+create trigger tgr_after_udate_produto
+after update ON produtos
+for each row
+begin 
+if OLD.preco <> NEW.preco Then 
+insert into log_auditoria_produtos (produto_id, acao, valor_antigo, valor_novo, usuario) 
+values (old.id, 'UPDATE_PRECO', OLD.preco, NEW.preco, user());
+END IF;
+
+if OLD.estoque <> NEW.estoque THEN
+insert into log_auditoria_produtos (produto_id, acao, valor_antigo, valor_novo, usuario) 
+values (old.id, 'UPDATE_ESTOQUE', OLD.estoque, NEW.estoque, user());
+END IF;
+END$$
+
+
+/* update de itens nas tabelas*/
+update produtos set preco = 9.50  where id = 1 ;
+update produtos set estoque = 200  where id = 1 ;
